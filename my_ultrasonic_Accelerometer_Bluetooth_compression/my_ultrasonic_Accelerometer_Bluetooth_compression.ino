@@ -17,24 +17,17 @@ int LOOP_DURATION_MS = 50;
 
 int16_t accel_x, accel_y, accel_z;
 
-// Definitions for Bluetooth
-
-//#include <SoftwareSerial.h>
-
-const int rxPin = 10; // Connected to TXD on the Bluetooth module
-const int txPin = 11; // Connected to RXD on the Bluetooth module
-
-//SoftwareSerial myserial(rxPin, txPin);
-
 // Definitions for Ultrasonic sensor
 
 const int trigPin = 2;
 const int echoPin = 3;
 
 const int PROGRAM_MODE_PIN = 7;
-// Each integer is 2 bytes long, therefore a sample is 6 bytes.
-int SAMPLE_SIZE_BYTES = 6;
-int MAX_EEPROM_ADDR = EEPROM.length() - SAMPLE_SIZE_BYTES;
+
+// END_PADDING represents how many bytes of padding we want to leave at the end of the EEPROM
+// we leave some for safety so that we don't write to invalid locations
+int END_PADDING = 6;
+int MAX_EEPROM_ADDR = (EEPROM.length()/3) - END_PADDING;
 
 float duration, cm;
 
@@ -50,9 +43,6 @@ void setup() {
   
   accelerometer.initialize();
 
-
-  pinMode(rxPin, INPUT);
-  pinMode(txPin, OUTPUT);
 
   // Set up Ultrasonic sensor
 
@@ -166,10 +156,10 @@ void setup() {
       int8_t DistMM_DIFF = currDistMM - prevDistMM;
       int8_t AccelScaled_DIFF = currAccelScaled - prevAccelScaled;
 
-      if (currDistMM - prevDistMM > 127) {
+      if (currDistMM - prevDistMM > 125 || currDistMM - prevDistMM < -125) {
         has_overflowed = true;
       }
-      if (currAccelScaled - prevAccelScaled > 127) {
+      if (currAccelScaled - prevAccelScaled > 125  || currAccelScaled - prevAccelScaled < -125) {
         has_overflowed = true;
       }
 
